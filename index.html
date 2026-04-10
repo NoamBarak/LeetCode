@@ -5,20 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>LeetCode Solutions — A Reference Book</title>
 
-  <!-- Syntax highlighting -->
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/cpp.min.js"></script>
 
   <style>
-    /* ─── Reset & Base ─────────────────────────────────────────────── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --page-bg:      #f7f4ef;
       --sidebar-bg:   #1e2530;
-      --sidebar-w:    280px;
+      --sidebar-w:    288px;
       --accent:       #4a7fa5;
       --accent-light: #6ca0c0;
       --text:         #2d3142;
@@ -28,9 +26,9 @@
       --tag-bg:       #e8f0f7;
       --tag-fg:       #2e5d82;
       --chapter-num:  #c8bfaf;
-      --code-outer:   #1a1e2a;
-      --toc-active:   #4a7fa5;
       --heading-rule: #c8bfaf;
+      --wix-bg:  #e8eeff; --wix-fg:  #2048c0;
+      --iai-bg:  #e6f5ed; --iai-fg:  #1a6b3c;
     }
 
     html { scroll-behavior: smooth; }
@@ -43,462 +41,343 @@
       min-height: 100vh;
     }
 
-    /* ─── Sidebar ──────────────────────────────────────────────────── */
+    /* ── Sidebar ── */
     #sidebar {
-      position: fixed;
-      top: 0; left: 0;
-      width: var(--sidebar-w);
-      height: 100vh;
+      position: fixed; top: 0; left: 0;
+      width: var(--sidebar-w); height: 100vh;
       background: var(--sidebar-bg);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      z-index: 100;
+      display: flex; flex-direction: column;
+      overflow: hidden; z-index: 100;
       box-shadow: 3px 0 20px rgba(0,0,0,.25);
     }
 
     #sidebar-header {
-      padding: 30px 24px 20px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
+      padding: 26px 24px 16px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
       flex-shrink: 0;
     }
 
     #sidebar-header .book-title {
       font-family: 'Georgia', serif;
-      font-size: 1.05rem;
-      font-weight: normal;
-      color: #e0d8cc;
-      letter-spacing: .04em;
-      line-height: 1.4;
+      font-size: 1rem; font-weight: normal;
+      color: #e0d8cc; letter-spacing: .04em; line-height: 1.4;
     }
 
     #sidebar-header .book-subtitle {
       font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .72rem;
-      color: #7a8a9a;
-      letter-spacing: .12em;
-      text-transform: uppercase;
-      margin-top: 6px;
+      font-size: .67rem; color: #7a8a9a;
+      letter-spacing: .12em; text-transform: uppercase; margin-top: 4px;
     }
 
+    /* ── Company Filter ── */
+    #company-filter {
+      padding: 13px 24px 14px;
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      flex-shrink: 0;
+    }
+
+    .filter-label {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .59rem; letter-spacing: .18em;
+      text-transform: uppercase; color: #4a5568; margin-bottom: 9px;
+    }
+
+    .filter-buttons { display: flex; flex-wrap: wrap; gap: 6px; }
+
+    .filter-btn {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .71rem; padding: 5px 13px; border-radius: 20px;
+      border: 1px solid rgba(255,255,255,.12);
+      background: transparent; color: #8a9ab0;
+      cursor: pointer; transition: background .15s, color .15s, border-color .15s;
+      letter-spacing: .04em;
+    }
+
+    .filter-btn:hover { background: rgba(255,255,255,.06); color: #c8d0da; }
+    .filter-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .filter-btn[data-company="wix"].active { background: #2048c0; border-color: #2048c0; }
+    .filter-btn[data-company="iai"].active { background: #1a6b3c; border-color: #1a6b3c; }
+
+    #filter-banner {
+      display: none; align-items: center; gap: 8px;
+      background: rgba(74,127,165,.12);
+      border-bottom: 1px solid rgba(74,127,165,.2);
+      padding: 7px 24px; flex-shrink: 0;
+    }
+    #filter-banner.visible { display: flex; }
+    #filter-banner span {
+      font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .69rem; color: #93c5e0;
+    }
+    #filter-banner strong { font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+
+    /* ── TOC Nav ── */
     #toc-nav {
-      overflow-y: auto;
-      flex: 1;
-      padding: 16px 0 24px;
-      scrollbar-width: thin;
-      scrollbar-color: #3a4555 transparent;
+      overflow-y: auto; flex: 1;
+      padding: 12px 0 24px;
+      scrollbar-width: thin; scrollbar-color: #3a4555 transparent;
     }
-
     #toc-nav::-webkit-scrollbar { width: 4px; }
     #toc-nav::-webkit-scrollbar-thumb { background: #3a4555; border-radius: 2px; }
 
     .toc-section-label {
       font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .62rem;
-      font-weight: 600;
-      letter-spacing: .14em;
-      text-transform: uppercase;
-      color: #4a5568;
-      padding: 16px 24px 6px;
+      font-size: .59rem; font-weight: 600; letter-spacing: .14em;
+      text-transform: uppercase; color: #4a5568; padding: 13px 24px 4px;
     }
 
     .toc-entry {
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-      padding: 8px 24px;
-      text-decoration: none;
+      display: flex; align-items: center; gap: 10px;
+      padding: 6px 24px; text-decoration: none;
       transition: background .15s;
-      cursor: pointer;
     }
-
     .toc-entry:hover { background: rgba(255,255,255,.05); }
     .toc-entry.active { background: rgba(74,127,165,.18); }
 
     .toc-num {
       font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .68rem;
-      color: #4a5568;
-      min-width: 22px;
-      text-align: right;
-      flex-shrink: 0;
+      font-size: .65rem; color: #4a5568;
+      min-width: 22px; text-align: right; flex-shrink: 0;
     }
-
     .toc-name {
-      font-family: 'Georgia', serif;
-      font-size: .82rem;
-      color: #c8d0da;
-      line-height: 1.35;
+      font-family: 'Georgia', serif; font-size: .79rem;
+      color: #c8d0da; line-height: 1.3; flex: 1;
     }
-
     .toc-entry.active .toc-name { color: #93c5e0; }
-    .toc-entry.toc-cover .toc-name { color: #a0aab4; font-style: italic; }
+    .toc-entry.toc-front .toc-name { color: #a0aab4; font-style: italic; }
 
-    /* ─── Main Content ─────────────────────────────────────────────── */
-    #main {
-      margin-left: var(--sidebar-w);
-      flex: 1;
-      padding: 0;
-    }
+    .toc-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .toc-dot.wix { background: #2048c0; }
+    .toc-dot.iai { background: #1a6b3c; }
 
-    /* ─── Cover / Title Page ───────────────────────────────────────── */
+    /* ── Main ── */
+    #main { margin-left: var(--sidebar-w); flex: 1; }
+
+    /* ── Cover ── */
     #cover {
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      text-align: center;
+      min-height: 100vh; display: flex; flex-direction: column;
+      justify-content: center; align-items: center; text-align: center;
       background: linear-gradient(160deg, #edeae4 0%, #f7f4ef 60%, #eaf0f6 100%);
-      padding: 60px 40px;
-      position: relative;
-      overflow: hidden;
+      padding: 60px 40px; position: relative; overflow: hidden;
     }
-
     #cover::before {
-      content: '';
-      position: absolute;
-      inset: 0;
+      content: ''; position: absolute; inset: 0;
       background:
         repeating-linear-gradient(0deg, transparent, transparent 39px, #e0dbd4 39px, #e0dbd4 40px),
         repeating-linear-gradient(90deg, transparent, transparent 39px, #e0dbd4 39px, #e0dbd4 40px);
-      opacity: .35;
+      opacity: .28;
     }
-
     .cover-inner { position: relative; z-index: 1; max-width: 620px; }
-
     .cover-eyebrow {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .72rem;
-      letter-spacing: .22em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 20px;
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .69rem;
+      letter-spacing: .22em; text-transform: uppercase; color: var(--accent); margin-bottom: 16px;
     }
-
     .cover-title {
       font-family: 'Georgia', serif;
       font-size: clamp(2.2rem, 5vw, 3.4rem);
-      font-weight: normal;
-      color: #1a2030;
-      line-height: 1.15;
-      margin-bottom: 16px;
+      font-weight: normal; color: #1a2030; line-height: 1.15; margin-bottom: 14px;
     }
-
-    .cover-rule {
-      width: 60px; height: 2px;
-      background: var(--accent);
-      margin: 20px auto;
-      border: none;
-    }
-
+    .cover-rule { width: 60px; height: 2px; background: var(--accent); margin: 16px auto; border: none; }
     .cover-subtitle {
-      font-family: 'Georgia', serif;
-      font-size: 1.05rem;
-      color: var(--text-muted);
-      font-style: italic;
-      line-height: 1.6;
-      margin-bottom: 48px;
+      font-family: 'Georgia', serif; font-size: 1rem;
+      color: var(--text-muted); font-style: italic; line-height: 1.65; margin-bottom: 40px;
     }
-
+    .cover-cta {
+      display: inline-block;
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .75rem;
+      letter-spacing: .14em; text-transform: uppercase;
+      color: #fff; background: var(--accent); padding: 12px 28px;
+      border-radius: 4px; text-decoration: none;
+    }
+    .cover-companies { display: flex; justify-content: center; gap: 8px; margin-top: 18px; }
+    .co-pill {
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .65rem;
+      letter-spacing: .08em; padding: 3px 10px; border-radius: 12px; font-weight: 600;
+    }
+    .co-pill.wix { background: var(--wix-bg); color: var(--wix-fg); }
+    .co-pill.iai { background: var(--iai-bg); color: var(--iai-fg); }
     .cover-meta {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .75rem;
-      color: #9aa0ad;
-      letter-spacing: .06em;
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .7rem;
+      color: #9aa0ad; letter-spacing: .06em; margin-top: 20px;
     }
 
-    /* ─── Table of Contents Page ──────────────────────────────────── */
+    /* ── TOC Page ── */
     #toc-page {
       background: var(--page-bg);
-      padding: 80px clamp(32px, 6vw, 100px) 80px;
+      padding: 68px clamp(26px, 6vw, 92px) 68px;
       border-top: 1px solid var(--divider);
     }
-
     .page-label {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .68rem;
-      letter-spacing: .2em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 12px;
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .65rem;
+      letter-spacing: .2em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;
     }
-
     .page-heading {
-      font-family: 'Georgia', serif;
-      font-size: clamp(1.6rem, 3vw, 2.2rem);
-      font-weight: normal;
-      color: var(--text);
-      border-bottom: 1.5px solid var(--heading-rule);
-      padding-bottom: 16px;
-      margin-bottom: 40px;
+      font-family: 'Georgia', serif; font-size: clamp(1.4rem, 3vw, 2rem);
+      font-weight: normal; color: var(--text);
+      border-bottom: 1.5px solid var(--heading-rule); padding-bottom: 12px; margin-bottom: 32px;
     }
 
-    .toc-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-      gap: 18px;
+    #toc-filter-notice {
+      display: none; align-items: center; gap: 10px;
+      background: #eef4fb; border: 1px solid #c8dcee;
+      border-radius: 6px; padding: 9px 15px; margin-bottom: 22px;
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .78rem; color: #345a7a;
     }
+    #toc-filter-notice.visible { display: flex; }
+    #toc-filter-notice .notice-label { font-weight: 600; }
+
+    .toc-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; }
 
     .toc-card {
-      background: var(--card-bg);
-      border: 1px solid var(--divider);
-      border-radius: 8px;
-      padding: 20px 22px;
-      text-decoration: none;
-      color: inherit;
-      display: flex;
-      gap: 16px;
-      align-items: flex-start;
+      background: var(--card-bg); border: 1px solid var(--divider);
+      border-radius: 8px; padding: 16px 18px; text-decoration: none; color: inherit;
+      display: flex; gap: 13px; align-items: flex-start;
       transition: box-shadow .2s, transform .15s, border-color .2s;
     }
-
     .toc-card:hover {
       box-shadow: 0 6px 20px rgba(0,0,0,.08);
-      transform: translateY(-2px);
-      border-color: var(--accent-light);
+      transform: translateY(-2px); border-color: var(--accent-light);
     }
-
     .toc-card-num {
-      font-family: 'Georgia', serif;
-      font-size: 1.6rem;
-      color: var(--chapter-num);
-      line-height: 1;
-      min-width: 32px;
-      padding-top: 2px;
-      text-align: right;
-      flex-shrink: 0;
+      font-family: 'Georgia', serif; font-size: 1.45rem; color: var(--chapter-num);
+      line-height: 1; min-width: 28px; text-align: right; flex-shrink: 0; padding-top: 2px;
     }
-
     .toc-card-body { flex: 1; }
+    .toc-card-title { font-family: 'Georgia', serif; font-size: .95rem; color: var(--accent); margin-bottom: 4px; line-height: 1.3; }
+    .toc-card-desc { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .77rem; color: var(--text-muted); line-height: 1.5; }
+    .toc-card-footer { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; align-items: center; }
 
-    .toc-card-title {
-      font-family: 'Georgia', serif;
-      font-size: 1rem;
-      color: var(--accent);
-      margin-bottom: 6px;
-      line-height: 1.3;
+    .tag {
+      display: inline-block; font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .61rem; letter-spacing: .07em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: 3px;
     }
+    .tag.topic { background: var(--tag-bg); color: var(--tag-fg); }
+    .tag.wix   { background: var(--wix-bg); color: var(--wix-fg); font-weight: 600; }
+    .tag.iai   { background: var(--iai-bg); color: var(--iai-fg); font-weight: 600; }
 
-    .toc-card-desc {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .8rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    .toc-card-tag {
-      display: inline-block;
-      margin-top: 10px;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .65rem;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      background: var(--tag-bg);
-      color: var(--tag-fg);
-      padding: 2px 8px;
-      border-radius: 3px;
-    }
-
-    /* ─── Chapter Sections ─────────────────────────────────────────── */
+    /* ── Chapters ── */
     .chapter {
-      padding: 80px clamp(32px, 6vw, 100px) 80px;
+      padding: 68px clamp(26px, 6vw, 92px) 68px;
       border-top: 1px solid var(--divider);
     }
-
-    .chapter:nth-child(odd) { background: var(--page-bg); }
+    .chapter:nth-child(odd)  { background: var(--page-bg); }
     .chapter:nth-child(even) { background: #f0ece5; }
 
     .chapter-eyebrow {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .65rem;
-      letter-spacing: .22em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 8px;
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .62rem;
+      letter-spacing: .22em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 5px;
     }
-
     .chapter-num-large {
-      font-family: 'Georgia', serif;
-      font-size: 4rem;
-      color: var(--chapter-num);
-      line-height: 1;
-      margin-bottom: 2px;
+      font-family: 'Georgia', serif; font-size: 3.6rem; color: var(--chapter-num); line-height: 1;
     }
-
+    .chapter-header-row {
+      display: flex; align-items: flex-end; justify-content: space-between;
+      border-bottom: 1.5px solid var(--heading-rule); padding-bottom: 11px; margin-bottom: 26px;
+      gap: 14px; flex-wrap: wrap;
+    }
     .chapter-title {
-      font-family: 'Georgia', serif;
-      font-size: clamp(1.5rem, 2.8vw, 2rem);
-      font-weight: normal;
-      color: var(--text);
-      border-bottom: 1.5px solid var(--heading-rule);
-      padding-bottom: 14px;
-      margin-bottom: 32px;
+      font-family: 'Georgia', serif; font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+      font-weight: normal; color: var(--text);
     }
+    .chapter-companies { display: flex; gap: 6px; flex-shrink: 0; padding-bottom: 2px; }
 
-    /* Problem statement */
+    /* Problem box */
     .problem-box {
-      background: var(--card-bg);
-      border: 1px solid var(--divider);
-      border-left: 4px solid var(--accent);
-      border-radius: 6px;
-      padding: 22px 26px;
-      margin-bottom: 28px;
+      background: var(--card-bg); border: 1px solid var(--divider);
+      border-left: 4px solid var(--accent); border-radius: 6px;
+      padding: 18px 22px; margin-bottom: 20px;
     }
-
     .problem-box-label {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .65rem;
-      letter-spacing: .18em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 10px;
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .61rem;
+      letter-spacing: .18em; text-transform: uppercase; color: var(--accent); margin-bottom: 8px;
     }
+    .problem-box p { font-family: 'Georgia', serif; font-size: .92rem; line-height: 1.7; color: var(--text); }
 
-    .problem-box p {
-      font-family: 'Georgia', serif;
-      font-size: .95rem;
-      line-height: 1.7;
-      color: var(--text);
+    /* THE CATCH box */
+    .catch-box {
+      background: #fef9ec; border: 1px solid #e8d080;
+      border-left: 4px solid #c8900a; border-radius: 6px;
+      padding: 16px 22px; margin-bottom: 20px;
+    }
+    .catch-box-label {
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .61rem;
+      letter-spacing: .18em; text-transform: uppercase;
+      color: #9a6800; margin-bottom: 8px; font-weight: 700;
+    }
+    .catch-box p {
+      font-family: 'Georgia', serif; font-size: .92rem;
+      color: #4a2e00; line-height: 1.68;
+    }
+    .catch-box code {
+      background: rgba(180,120,0,.1); padding: 1px 5px; border-radius: 3px;
+      font-family: 'Courier New', monospace; font-size: .86em; color: #7a4500;
     }
 
     /* Example box */
     .example-box {
-      background: #eef2f7;
-      border: 1px solid #d0dae6;
-      border-radius: 6px;
-      padding: 16px 22px;
-      margin-bottom: 28px;
-      font-family: 'Courier New', monospace;
-      font-size: .82rem;
-      line-height: 1.6;
-      color: #344256;
+      background: #eef2f7; border: 1px solid #d0dae6; border-radius: 6px;
+      padding: 13px 19px; margin-bottom: 20px;
+      font-family: 'Courier New', monospace; font-size: .79rem; line-height: 1.65; color: #344256;
     }
-
     .example-box .ex-label {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .63rem;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      color: #6a8aaa;
-      margin-bottom: 6px;
-      font-weight: 600;
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .6rem;
+      letter-spacing: .16em; text-transform: uppercase; color: #6a8aaa; margin-bottom: 5px; font-weight: 600;
     }
 
     /* Notes box */
     .notes-box {
-      background: #fdf8ee;
-      border: 1px solid #e8dfc0;
-      border-radius: 6px;
-      padding: 16px 22px;
-      margin-bottom: 28px;
+      background: #fdf8ee; border: 1px solid #e8dfc0; border-radius: 6px; padding: 13px 19px; margin-bottom: 20px;
     }
-
     .notes-box .notes-label {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .63rem;
-      letter-spacing: .16em;
-      text-transform: uppercase;
-      color: #9a8040;
-      margin-bottom: 8px;
-      font-weight: 600;
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .6rem;
+      letter-spacing: .16em; text-transform: uppercase; color: #9a8040; margin-bottom: 6px; font-weight: 600;
     }
+    .notes-box p { font-family: 'Georgia', serif; font-size: .86rem; color: #6b5a2a; line-height: 1.65; }
 
-    .notes-box p {
-      font-family: 'Georgia', serif;
-      font-size: .88rem;
-      color: #6b5a2a;
-      line-height: 1.65;
-    }
-
-    /* Solution heading */
+    /* Solution label + code */
     .solution-label {
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .65rem;
-      letter-spacing: .22em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 10px;
+      font-family: 'Helvetica Neue', Arial, sans-serif; font-size: .61rem;
+      letter-spacing: .22em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;
     }
-
-    /* Code block wrapper */
-    .code-wrap {
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 4px 18px rgba(0,0,0,.14);
-    }
-
+    .code-wrap { border-radius: 8px; overflow: hidden; box-shadow: 0 4px 18px rgba(0,0,0,.14); }
     .code-filename {
-      background: #151922;
-      color: #6a7d94;
-      font-family: 'Courier New', monospace;
-      font-size: .72rem;
-      padding: 8px 18px;
-      border-bottom: 1px solid #222a36;
-      display: flex;
-      align-items: center;
-      gap: 8px;
+      background: #151922; color: #6a7d94;
+      font-family: 'Courier New', monospace; font-size: .69rem;
+      padding: 7px 17px; border-bottom: 1px solid #222a36;
+      display: flex; align-items: center; gap: 8px;
     }
-
     .code-filename::before {
-      content: '';
-      display: inline-block;
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: #3d5268;
-      flex-shrink: 0;
+      content: ''; display: inline-block; width: 9px; height: 9px;
+      border-radius: 50%; background: #3d5268; flex-shrink: 0;
     }
-
-    .code-wrap pre {
-      margin: 0 !important;
-      border-radius: 0 !important;
-    }
-
+    .code-wrap pre { margin: 0 !important; border-radius: 0 !important; }
     .code-wrap pre code {
       font-family: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace !important;
-      font-size: .83rem !important;
-      line-height: 1.65 !important;
-      padding: 22px 24px !important;
-      overflow-x: auto;
+      font-size: .81rem !important; line-height: 1.65 !important; padding: 20px 22px !important;
     }
 
-    /* ─── Footer ───────────────────────────────────────────────────── */
+    /* Footer */
     #book-footer {
-      background: var(--sidebar-bg);
-      color: #4a5568;
-      text-align: center;
-      padding: 28px 40px;
-      font-family: 'Helvetica Neue', Arial, sans-serif;
-      font-size: .72rem;
-      letter-spacing: .06em;
+      background: var(--sidebar-bg); color: #4a5568; text-align: center;
+      padding: 24px 40px; font-family: 'Helvetica Neue', Arial, sans-serif;
+      font-size: .69rem; letter-spacing: .06em;
     }
 
-    /* ─── Back-to-top ──────────────────────────────────────────────── */
+    /* Back to top */
     #back-top {
-      position: fixed;
-      bottom: 28px;
-      right: 28px;
-      width: 40px; height: 40px;
-      border-radius: 50%;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      cursor: pointer;
-      font-size: 1rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position: fixed; bottom: 24px; right: 24px;
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--accent); color: #fff; border: none; cursor: pointer;
+      font-size: 1rem; display: flex; align-items: center; justify-content: center;
       box-shadow: 0 3px 10px rgba(0,0,0,.2);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .3s;
-      z-index: 200;
+      opacity: 0; pointer-events: none; transition: opacity .3s; z-index: 200;
       text-decoration: none;
     }
-
     #back-top.visible { opacity: 1; pointer-events: auto; }
 
-    /* ─── Responsive ───────────────────────────────────────────────── */
+    .filtered-out { display: none !important; }
+
     @media (max-width: 720px) {
       :root { --sidebar-w: 0px; }
       #sidebar { display: none; }
@@ -508,234 +387,261 @@
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════════════════════════════════
-     SIDEBAR
-════════════════════════════════════════════════════════════════════ -->
+<!-- ══ SIDEBAR ═══════════════════════════════════════════════════════ -->
 <nav id="sidebar">
   <div id="sidebar-header">
     <div class="book-title">LeetCode Solutions</div>
     <div class="book-subtitle">A Reference Book</div>
   </div>
+
+  <div id="company-filter">
+    <div class="filter-label">Filter by Company</div>
+    <div class="filter-buttons">
+      <button class="filter-btn active" data-company="all">All</button>
+      <button class="filter-btn" data-company="wix">Wix</button>
+      <button class="filter-btn" data-company="iai">IAI</button>
+    </div>
+  </div>
+
+  <div id="filter-banner">
+    <span>Showing: <strong id="filter-banner-name"></strong></span>
+  </div>
+
   <div id="toc-nav">
     <div class="toc-section-label">Front Matter</div>
-    <a class="toc-entry toc-cover" href="#cover">
-      <span class="toc-num">—</span>
-      <span class="toc-name">Cover</span>
-    </a>
-    <a class="toc-entry toc-cover" href="#toc-page">
-      <span class="toc-num">—</span>
-      <span class="toc-name">Table of Contents</span>
-    </a>
+    <a class="toc-entry toc-front" href="#cover"><span class="toc-num">—</span><span class="toc-name">Cover</span></a>
+    <a class="toc-entry toc-front" href="#toc-page"><span class="toc-num">—</span><span class="toc-name">Table of Contents</span></a>
 
     <div class="toc-section-label">Chapters</div>
-    <a class="toc-entry" href="#ch1">
-      <span class="toc-num">01</span>
-      <span class="toc-name">Two Sum</span>
-    </a>
-    <a class="toc-entry" href="#ch2">
-      <span class="toc-num">02</span>
-      <span class="toc-name">Roman to Integer</span>
-    </a>
-    <a class="toc-entry" href="#ch3">
-      <span class="toc-num">03</span>
-      <span class="toc-name">Median of Two Sorted Arrays</span>
-    </a>
-    <a class="toc-entry" href="#ch4">
-      <span class="toc-num">04</span>
-      <span class="toc-name">Valid Anagram</span>
-    </a>
-    <a class="toc-entry" href="#ch5">
-      <span class="toc-num">05</span>
-      <span class="toc-name">Find the Peaks</span>
-    </a>
-    <a class="toc-entry" href="#ch6">
-      <span class="toc-num">06</span>
-      <span class="toc-name">Pascal's Triangle</span>
-    </a>
-    <a class="toc-entry" href="#ch7">
-      <span class="toc-num">07</span>
-      <span class="toc-name">Unique Paths</span>
-    </a>
-    <a class="toc-entry" href="#ch8">
-      <span class="toc-num">08</span>
-      <span class="toc-name">Word Search</span>
-    </a>
-    <a class="toc-entry" href="#ch9">
-      <span class="toc-num">09</span>
-      <span class="toc-name">Word Search II</span>
-    </a>
-    <a class="toc-entry" href="#ch10">
-      <span class="toc-num">10</span>
-      <span class="toc-name">Parse Lisp Expression</span>
-    </a>
-    <a class="toc-entry" href="#ch11">
-      <span class="toc-num">11</span>
-      <span class="toc-name">Fibonacci Number</span>
-    </a>
-    <a class="toc-entry" href="#ch12">
-      <span class="toc-num">12</span>
-      <span class="toc-name">DFS Templates</span>
-    </a>
+    <a class="toc-entry" href="#ch1"  data-companies="wix"><span class="toc-num">01</span><span class="toc-name">Two Sum</span><span class="toc-dot wix"></span></a>
+    <a class="toc-entry" href="#ch2"  data-companies="wix"><span class="toc-num">02</span><span class="toc-name">Roman to Integer</span><span class="toc-dot wix"></span></a>
+    <a class="toc-entry" href="#ch3"  data-companies="wix"><span class="toc-num">03</span><span class="toc-name">Median of Two Sorted Arrays</span><span class="toc-dot wix"></span></a>
+    <a class="toc-entry" href="#ch4"  data-companies="wix"><span class="toc-num">04</span><span class="toc-name">Valid Anagram</span><span class="toc-dot wix"></span></a>
+    <a class="toc-entry" href="#ch5"  data-companies="wix"><span class="toc-num">05</span><span class="toc-name">Find the Peaks</span><span class="toc-dot wix"></span></a>
+    <a class="toc-entry" href="#ch6"  data-companies="wix"><span class="toc-num">06</span><span class="toc-name">Pascal's Triangle</span><span class="toc-dot wix"></span></a>
+    <a class="toc-entry" href="#ch7"  data-companies="wix"><span class="toc-num">07</span><span class="toc-name">Unique Paths</span><span class="toc-dot wix"></span></a>
+    <a class="toc-entry" href="#ch8"  data-companies="wix"><span class="toc-num">08</span><span class="toc-name">Word Search</span><span class="toc-dot wix"></span></a>
+    <a class="toc-entry" href="#ch9"  data-companies="wix"><span class="toc-num">09</span><span class="toc-name">Word Search II</span><span class="toc-dot wix"></span></a>
+    <a class="toc-entry" href="#ch10" data-companies="wix"><span class="toc-num">10</span><span class="toc-name">Parse Lisp Expression</span><span class="toc-dot wix"></span></a>
+    <a class="toc-entry" href="#ch11" data-companies="wix"><span class="toc-num">11</span><span class="toc-name">Fibonacci Number</span><span class="toc-dot wix"></span></a>
+    <a class="toc-entry" href="#ch12" data-companies="wix"><span class="toc-num">12</span><span class="toc-name">DFS Templates</span><span class="toc-dot wix"></span></a>
+    <a class="toc-entry" href="#ch13" data-companies="iai"><span class="toc-num">13</span><span class="toc-name">Reverse Linked List</span><span class="toc-dot iai"></span></a>
+    <a class="toc-entry" href="#ch14" data-companies=""><span class="toc-num">14</span><span class="toc-name">Meeting Rooms III</span><span class="toc-dot iai"></span></a>
+    <a class="toc-entry" href="#ch15" data-companies="iai"><span class="toc-num">15</span><span class="toc-name">Valid Parenthesis String</span><span class="toc-dot iai"></span></a>
+    <a class="toc-entry" href="#ch16" data-companies="iai"><span class="toc-num">16</span><span class="toc-name">Binary Search</span><span class="toc-dot iai"></span></a>
+    <a class="toc-entry" href="#ch17" data-companies="iai"><span class="toc-num">17</span><span class="toc-name">Valid Parentheses</span><span class="toc-dot iai"></span></a>
+    <a class="toc-entry" href="#ch18" data-companies="iai"><span class="toc-num">18</span><span class="toc-name">Generate Parentheses</span><span class="toc-dot iai"></span></a>
   </div>
 </nav>
 
-<!-- ═══════════════════════════════════════════════════════════════════
-     MAIN
-════════════════════════════════════════════════════════════════════ -->
+<!-- ══ MAIN ══════════════════════════════════════════════════════════ -->
 <div id="main">
 
-  <!-- ── Cover ──────────────────────────────────────────────────── -->
+  <!-- Cover -->
   <section id="cover">
     <div class="cover-inner">
       <div class="cover-eyebrow">Personal Reference</div>
       <h1 class="cover-title">LeetCode<br>Solutions</h1>
       <hr class="cover-rule" />
       <p class="cover-subtitle">
-        Twelve handcrafted solutions — from classic arrays<br>
+        Eighteen handcrafted solutions — from classic arrays<br>
         to recursive parsing — with problem statements,<br>
-        examples, and annotated C++ code.
+        key insights, and annotated C++ code.
       </p>
-      <a href="#toc-page" style="
-        display:inline-block;
-        font-family:'Helvetica Neue',Arial,sans-serif;
-        font-size:.78rem;
-        letter-spacing:.14em;
-        text-transform:uppercase;
-        color:#fff;
-        background:var(--accent);
-        padding:12px 28px;
-        border-radius:4px;
-        text-decoration:none;
-        transition:background .2s;
-      ">Table of Contents &darr;</a>
-      <p class="cover-meta" style="margin-top:40px;">12 problems &nbsp;·&nbsp; C++</p>
+      <a class="cover-cta" href="#toc-page">Table of Contents &darr;</a>
+      <div class="cover-companies">
+        <span class="co-pill wix">Wix</span>
+        <span class="co-pill iai">IAI</span>
+      </div>
+      <p class="cover-meta">18 problems &nbsp;·&nbsp; C++ &nbsp;·&nbsp; Filter by company in the sidebar</p>
     </div>
   </section>
 
-  <!-- ── Table of Contents Page ─────────────────────────────────── -->
+  <!-- TOC Page -->
   <section id="toc-page">
     <div class="page-label">Front Matter</div>
     <h2 class="page-heading">Table of Contents</h2>
+    <div id="toc-filter-notice">
+      <span class="notice-label">Filter active:&nbsp;</span>
+      <span id="toc-notice-text"></span>
+    </div>
     <div class="toc-grid">
 
-      <a class="toc-card" href="#ch1">
+      <a class="toc-card" href="#ch1" data-companies="wix">
         <span class="toc-card-num">01</span>
         <div class="toc-card-body">
           <div class="toc-card-title">Two Sum</div>
           <div class="toc-card-desc">Return the indices of two numbers in an array that add up to a given target.</div>
-          <span class="toc-card-tag">Hash Map</span>
+          <div class="toc-card-footer"><span class="tag topic">Hash Map</span><span class="tag wix">Wix</span></div>
         </div>
       </a>
 
-      <a class="toc-card" href="#ch2">
+      <a class="toc-card" href="#ch2" data-companies="wix">
         <span class="toc-card-num">02</span>
         <div class="toc-card-body">
           <div class="toc-card-title">Roman to Integer</div>
           <div class="toc-card-desc">Convert a Roman numeral string to its corresponding integer value.</div>
-          <span class="toc-card-tag">String · Map</span>
+          <div class="toc-card-footer"><span class="tag topic">String · Map</span><span class="tag wix">Wix</span></div>
         </div>
       </a>
 
-      <a class="toc-card" href="#ch3">
+      <a class="toc-card" href="#ch3" data-companies="wix">
         <span class="toc-card-num">03</span>
         <div class="toc-card-body">
           <div class="toc-card-title">Median of Two Sorted Arrays</div>
-          <div class="toc-card-desc">Find the median of two sorted arrays in O(log(min(m,n))) time using binary search.</div>
-          <span class="toc-card-tag">Binary Search</span>
+          <div class="toc-card-desc">Find the median of two sorted arrays in O(log(min(m,n))) using binary search.</div>
+          <div class="toc-card-footer"><span class="tag topic">Binary Search</span><span class="tag wix">Wix</span></div>
         </div>
       </a>
 
-      <a class="toc-card" href="#ch4">
+      <a class="toc-card" href="#ch4" data-companies="wix">
         <span class="toc-card-num">04</span>
         <div class="toc-card-body">
           <div class="toc-card-title">Valid Anagram</div>
           <div class="toc-card-desc">Check whether two strings contain exactly the same characters with the same frequencies.</div>
-          <span class="toc-card-tag">String · Frequency</span>
+          <div class="toc-card-footer"><span class="tag topic">String · Frequency</span><span class="tag wix">Wix</span></div>
         </div>
       </a>
 
-      <a class="toc-card" href="#ch5">
+      <a class="toc-card" href="#ch5" data-companies="wix">
         <span class="toc-card-num">05</span>
         <div class="toc-card-body">
           <div class="toc-card-title">Find the Peaks</div>
           <div class="toc-card-desc">Return all indices where an element is strictly greater than both its neighbours.</div>
-          <span class="toc-card-tag">Array</span>
+          <div class="toc-card-footer"><span class="tag topic">Array</span><span class="tag wix">Wix</span></div>
         </div>
       </a>
 
-      <a class="toc-card" href="#ch6">
+      <a class="toc-card" href="#ch6" data-companies="wix">
         <span class="toc-card-num">06</span>
         <div class="toc-card-body">
           <div class="toc-card-title">Pascal's Triangle</div>
           <div class="toc-card-desc">Generate the first N rows of Pascal's triangle where each value is the sum of the two above.</div>
-          <span class="toc-card-tag">Dynamic Programming</span>
+          <div class="toc-card-footer"><span class="tag topic">Dynamic Programming</span><span class="tag wix">Wix</span></div>
         </div>
       </a>
 
-      <a class="toc-card" href="#ch7">
+      <a class="toc-card" href="#ch7" data-companies="wix">
         <span class="toc-card-num">07</span>
         <div class="toc-card-body">
           <div class="toc-card-title">Unique Paths</div>
-          <div class="toc-card-desc">Count how many distinct paths a robot can take to move from the top-left to the bottom-right of a grid.</div>
-          <span class="toc-card-tag">Dynamic Programming · Memoization</span>
+          <div class="toc-card-desc">Count how many distinct paths a robot can take moving only right or down to reach the corner.</div>
+          <div class="toc-card-footer"><span class="tag topic">DP · Memoization</span><span class="tag wix">Wix</span></div>
         </div>
       </a>
 
-      <a class="toc-card" href="#ch8">
+      <a class="toc-card" href="#ch8" data-companies="wix">
         <span class="toc-card-num">08</span>
         <div class="toc-card-body">
           <div class="toc-card-title">Word Search</div>
           <div class="toc-card-desc">Determine whether a single word can be traced through adjacent cells of a 2D character board.</div>
-          <span class="toc-card-tag">DFS · Backtracking</span>
+          <div class="toc-card-footer"><span class="tag topic">DFS · Backtracking</span><span class="tag wix">Wix</span></div>
         </div>
       </a>
 
-      <a class="toc-card" href="#ch9">
+      <a class="toc-card" href="#ch9" data-companies="wix">
         <span class="toc-card-num">09</span>
         <div class="toc-card-body">
           <div class="toc-card-title">Word Search II</div>
-          <div class="toc-card-desc">Find all words from a dictionary that can be traced through adjacent cells of a 2D character board.</div>
-          <span class="toc-card-tag">DFS · Backtracking</span>
+          <div class="toc-card-desc">Find all words from a dictionary that can be traced through adjacent cells of a 2D board.</div>
+          <div class="toc-card-footer"><span class="tag topic">DFS · Backtracking</span><span class="tag wix">Wix</span></div>
         </div>
       </a>
 
-      <a class="toc-card" href="#ch10">
+      <a class="toc-card" href="#ch10" data-companies="wix">
         <span class="toc-card-num">10</span>
         <div class="toc-card-body">
           <div class="toc-card-title">Parse Lisp Expression</div>
           <div class="toc-card-desc">Evaluate a Lisp-like expression that supports let bindings, addition, and multiplication.</div>
-          <span class="toc-card-tag">Recursion · Parsing</span>
+          <div class="toc-card-footer"><span class="tag topic">Recursion · Parsing</span><span class="tag wix">Wix</span></div>
         </div>
       </a>
 
-      <a class="toc-card" href="#ch11">
+      <a class="toc-card" href="#ch11" data-companies="wix">
         <span class="toc-card-num">11</span>
         <div class="toc-card-body">
           <div class="toc-card-title">Fibonacci Number</div>
-          <div class="toc-card-desc">Compute the nth Fibonacci number in O(n) time and O(1) space using two variables.</div>
-          <span class="toc-card-tag">Dynamic Programming</span>
+          <div class="toc-card-desc">Compute the nth Fibonacci number in O(n) time and O(1) space using two rolling variables.</div>
+          <div class="toc-card-footer"><span class="tag topic">Dynamic Programming</span><span class="tag wix">Wix</span></div>
         </div>
       </a>
 
-      <a class="toc-card" href="#ch12">
+      <a class="toc-card" href="#ch12" data-companies="wix">
         <span class="toc-card-num">12</span>
         <div class="toc-card-body">
           <div class="toc-card-title">DFS Templates</div>
           <div class="toc-card-desc">Reusable patterns for recursive DFS, iterative DFS with a stack, and backtracking.</div>
-          <span class="toc-card-tag">Template · DFS</span>
+          <div class="toc-card-footer"><span class="tag topic">Template · DFS</span><span class="tag wix">Wix</span></div>
+        </div>
+      </a>
+
+      <a class="toc-card" href="#ch13" data-companies="iai">
+        <span class="toc-card-num">13</span>
+        <div class="toc-card-body">
+          <div class="toc-card-title">Reverse Linked List</div>
+          <div class="toc-card-desc">Reverse a singly linked list in-place using three pointers in a single pass.</div>
+          <div class="toc-card-footer"><span class="tag topic">Linked List</span><span class="tag iai">IAI</span></div>
+        </div>
+      </a>
+
+      <a class="toc-card" href="#ch14" data-companies="">
+        <span class="toc-card-num">14</span>
+        <div class="toc-card-body">
+          <div class="toc-card-title">Meeting Rooms III</div>
+          <div class="toc-card-desc">Find the room that hosts the most meetings, delaying meetings when all rooms are occupied.</div>
+          <div class="toc-card-footer"><span class="tag topic">Heap · Greedy</span><span class="tag iai">IAI</span></div>
+        </div>
+      </a>
+
+      <a class="toc-card" href="#ch15" data-companies="iai">
+        <span class="toc-card-num">15</span>
+        <div class="toc-card-body">
+          <div class="toc-card-title">Valid Parenthesis String</div>
+          <div class="toc-card-desc">Check if a string with '(', ')' and wildcard '*' characters forms a valid parenthesisation.</div>
+          <div class="toc-card-footer"><span class="tag topic">Stack · Greedy</span><span class="tag iai">IAI</span></div>
+        </div>
+      </a>
+
+      <a class="toc-card" href="#ch16" data-companies="iai">
+        <span class="toc-card-num">16</span>
+        <div class="toc-card-body">
+          <div class="toc-card-title">Binary Search</div>
+          <div class="toc-card-desc">Find a target value in a sorted array in O(log n) by repeatedly halving the search range.</div>
+          <div class="toc-card-footer"><span class="tag topic">Binary Search</span><span class="tag iai">IAI</span></div>
+        </div>
+      </a>
+
+      <a class="toc-card" href="#ch17" data-companies="iai">
+        <span class="toc-card-num">17</span>
+        <div class="toc-card-body">
+          <div class="toc-card-title">Valid Parentheses</div>
+          <div class="toc-card-desc">Determine if a bracket string is valid — every opener is closed in the correct order.</div>
+          <div class="toc-card-footer"><span class="tag topic">Stack</span><span class="tag iai">IAI</span></div>
+        </div>
+      </a>
+
+      <a class="toc-card" href="#ch18" data-companies="iai">
+        <span class="toc-card-num">18</span>
+        <div class="toc-card-body">
+          <div class="toc-card-title">Generate Parentheses</div>
+          <div class="toc-card-desc">Generate all combinations of well-formed parentheses for a given number of pairs.</div>
+          <div class="toc-card-footer"><span class="tag topic">Backtracking</span><span class="tag iai">IAI</span></div>
         </div>
       </a>
 
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       CHAPTER 1 — Two Sum
-  ═════════════════════════════════════════════════════════════════ -->
-  <section id="ch1" class="chapter">
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 1 — Two Sum
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch1" class="chapter" data-companies="wix">
     <div class="chapter-eyebrow">Chapter</div>
     <div class="chapter-num-large">01</div>
-    <h2 class="chapter-title">Two Sum</h2>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Two Sum</h2>
+      <div class="chapter-companies"><span class="tag wix">Wix</span></div>
+    </div>
 
     <div class="problem-box">
       <div class="problem-box-label">Problem Statement</div>
@@ -744,9 +650,13 @@
 
     <div class="example-box">
       <div class="ex-label">Example</div>
-      Input:&nbsp; nums = [2, 7, 11, 15],&nbsp; target = 9<br>
-      Output: [0, 1]<br>
-      <span style="color:#8aa6c0">// nums[0] + nums[1] == 9 → return [0, 1]</span>
+      Input:&nbsp; nums = [2, 7, 11, 15], target = 9<br>
+      Output: [0, 1]&nbsp;&nbsp;<span style="color:#8aa6c0">// 2 + 7 == 9</span>
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>One-pass hash map: for each <code>nums[i]</code>, look up <code>target - nums[i]</code> in the map <em>before</em> inserting <code>nums[i]</code>. If the complement is already there, you're done.</p>
     </div>
 
     <div class="solution-label">Solution — two-sum.cpp</div>
@@ -769,13 +679,16 @@ public:
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       CHAPTER 2 — Roman to Integer
-  ═════════════════════════════════════════════════════════════════ -->
-  <section id="ch2" class="chapter">
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 2 — Roman to Integer
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch2" class="chapter" data-companies="wix">
     <div class="chapter-eyebrow">Chapter</div>
     <div class="chapter-num-large">02</div>
-    <h2 class="chapter-title">Roman to Integer</h2>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Roman to Integer</h2>
+      <div class="chapter-companies"><span class="tag wix">Wix</span></div>
+    </div>
 
     <div class="problem-box">
       <div class="problem-box-label">Problem Statement</div>
@@ -784,11 +697,12 @@ public:
 
     <div class="example-box">
       <div class="ex-label">Examples</div>
-      Input: "III"  → Output: 3<br>
-      Input: "IV"   → Output: 4<br>
-      Input: "IX"   → Output: 9<br>
-      Input: "LVIII"→ Output: 58<br>
-      Input: "MCMXCIV" → Output: 1994
+      "III" → 3 &nbsp;·&nbsp; "IV" → 4 &nbsp;·&nbsp; "IX" → 9 &nbsp;·&nbsp; "MCMXCIV" → 1994
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Lookahead comparison: if <code>value[s[i]] &lt; value[s[i+1]]</code>, the pair is a subtraction case — add <code>value[s[i+1]] - value[s[i]]</code> and skip both characters with <code>i++</code>. Otherwise just add <code>value[s[i]]</code>.</p>
     </div>
 
     <div class="solution-label">Solution — roman-to-integer.cpp</div>
@@ -819,25 +733,31 @@ public:
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       CHAPTER 3 — Median of Two Sorted Arrays
-  ═════════════════════════════════════════════════════════════════ -->
-  <section id="ch3" class="chapter">
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 3 — Median of Two Sorted Arrays
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch3" class="chapter" data-companies="wix">
     <div class="chapter-eyebrow">Chapter</div>
     <div class="chapter-num-large">03</div>
-    <h2 class="chapter-title">Median of Two Sorted Arrays</h2>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Median of Two Sorted Arrays</h2>
+      <div class="chapter-companies"><span class="tag wix">Wix</span></div>
+    </div>
 
     <div class="problem-box">
       <div class="problem-box-label">Problem Statement</div>
-      <p>Given two sorted arrays <code>nums1</code> and <code>nums2</code>, return the median of the two sorted arrays. The overall run time complexity should be O(log(min(m, n))).</p>
+      <p>Given two sorted arrays <code>nums1</code> and <code>nums2</code>, return the median of the two sorted arrays. Overall time complexity must be O(log(min(m, n))).</p>
     </div>
 
     <div class="example-box">
       <div class="ex-label">Examples</div>
-      Input: nums1 = [1,3], nums2 = [2]<br>
-      Output: 2.0<br><br>
-      Input: nums1 = [1,2], nums2 = [3,4]<br>
-      Output: 2.5
+      nums1=[1,3], nums2=[2] → 2.0<br>
+      nums1=[1,2], nums2=[3,4] → 2.5
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Binary-search for a partition in the <em>smaller</em> array. The partition in the second array is derived automatically: <code>cut2 = (m+n+1)/2 - cut1</code>. A valid partition satisfies <code>l1 ≤ r2</code> and <code>l2 ≤ r1</code>. Use <code>INT_MIN</code> / <code>INT_MAX</code> as sentinels at the edges to avoid boundary checks.</p>
     </div>
 
     <div class="solution-label">Solution — median-of-two-sorted-arrays.cpp</div>
@@ -885,23 +805,31 @@ public:
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       CHAPTER 4 — Valid Anagram
-  ═════════════════════════════════════════════════════════════════ -->
-  <section id="ch4" class="chapter">
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 4 — Valid Anagram
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch4" class="chapter" data-companies="wix">
     <div class="chapter-eyebrow">Chapter</div>
     <div class="chapter-num-large">04</div>
-    <h2 class="chapter-title">Valid Anagram</h2>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Valid Anagram</h2>
+      <div class="chapter-companies"><span class="tag wix">Wix</span></div>
+    </div>
 
     <div class="problem-box">
       <div class="problem-box-label">Problem Statement</div>
-      <p>Given two strings <code>s</code> and <code>t</code>, return <code>true</code> if <code>t</code> is an anagram of <code>s</code>, and <code>false</code> otherwise. An anagram uses all the original letters exactly once in a different arrangement.</p>
+      <p>Given two strings <code>s</code> and <code>t</code>, return <code>true</code> if <code>t</code> is an anagram of <code>s</code>, and <code>false</code> otherwise.</p>
     </div>
 
     <div class="example-box">
       <div class="ex-label">Examples</div>
-      Input: s = "anagram", t = "nagaram"  → Output: true<br>
-      Input: s = "rat",     t = "car"      → Output: false
+      s="anagram", t="nagaram" → true<br>
+      s="rat",     t="car"     → false
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Two frequency arrays of size 26 — one per string. Tally each character, then compare the arrays index by index. No sorting needed, O(n) time and O(1) space.</p>
     </div>
 
     <div class="solution-label">Solution — valid-anagram.cpp</div>
@@ -930,24 +858,31 @@ public:
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       CHAPTER 5 — Find the Peaks
-  ═════════════════════════════════════════════════════════════════ -->
-  <section id="ch5" class="chapter">
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 5 — Find the Peaks
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch5" class="chapter" data-companies="wix">
     <div class="chapter-eyebrow">Chapter</div>
     <div class="chapter-num-large">05</div>
-    <h2 class="chapter-title">Find the Peaks</h2>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Find the Peaks</h2>
+      <div class="chapter-companies"><span class="tag wix">Wix</span></div>
+    </div>
 
     <div class="problem-box">
       <div class="problem-box-label">Problem Statement</div>
-      <p>You are given a 0-indexed array <code>mountain</code>. Your task is to find all the peaks in the array. A peak is an element that is strictly greater than both its left and right neighbours. Return an array of the indices of all peaks in any order.</p>
+      <p>You are given a 0-indexed array <code>mountain</code>. A peak is an element strictly greater than both neighbours. Return the indices of all peaks.</p>
     </div>
 
     <div class="example-box">
       <div class="ex-label">Example</div>
-      Input:  mountain = [1, 4, 3, 8, 5]<br>
-      Output: [1, 3]<br>
-      <span style="color:#8aa6c0">// mountain[1]=4 &gt; 1,3  and  mountain[3]=8 &gt; 3,5</span>
+      mountain = [1, 4, 3, 8, 5] → [1, 3]<br>
+      <span style="color:#8aa6c0">// mountain[1]=4&gt;{1,3} &nbsp; mountain[3]=8&gt;{3,5}</span>
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>After confirming that index <code>i</code> is a peak, immediately execute an extra <code>i++</code> — the element at <code>i+1</code> is already known to be less than <code>mountain[i]</code>, so it <em>cannot</em> be a peak. This avoids a redundant comparison on the next iteration.</p>
     </div>
 
     <div class="solution-label">Solution — find-the-peaks.cpp</div>
@@ -975,23 +910,30 @@ public:
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       CHAPTER 6 — Pascal's Triangle
-  ═════════════════════════════════════════════════════════════════ -->
-  <section id="ch6" class="chapter">
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 6 — Pascal's Triangle
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch6" class="chapter" data-companies="wix">
     <div class="chapter-eyebrow">Chapter</div>
     <div class="chapter-num-large">06</div>
-    <h2 class="chapter-title">Pascal's Triangle</h2>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Pascal's Triangle</h2>
+      <div class="chapter-companies"><span class="tag wix">Wix</span></div>
+    </div>
 
     <div class="problem-box">
       <div class="problem-box-label">Problem Statement</div>
-      <p>Given an integer <code>numRows</code>, return the first <code>numRows</code> of Pascal's triangle. In Pascal's triangle, each number is the sum of the two numbers directly above it.</p>
+      <p>Given an integer <code>numRows</code>, return the first <code>numRows</code> of Pascal's triangle. Each number is the sum of the two numbers directly above it.</p>
     </div>
 
     <div class="example-box">
       <div class="ex-label">Example</div>
-      Input:  numRows = 5<br>
-      Output: [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]
+      numRows=5 → [[1],[1,1],[1,2,1],[1,3,3,1],[1,4,6,4,1]]
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Build row by row. The rule is simple: edges are always <code>1</code>; any interior cell at position <code>(r, i)</code> equals <code>res[r-1][i-1] + res[r-1][i]</code>. No formula needed — just reuse the previous row directly.</p>
     </div>
 
     <div class="solution-label">Solution — pascals-triangle.cpp</div>
@@ -1021,23 +963,30 @@ public:
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       CHAPTER 7 — Unique Paths
-  ═════════════════════════════════════════════════════════════════ -->
-  <section id="ch7" class="chapter">
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 7 — Unique Paths
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch7" class="chapter" data-companies="wix">
     <div class="chapter-eyebrow">Chapter</div>
     <div class="chapter-num-large">07</div>
-    <h2 class="chapter-title">Unique Paths</h2>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Unique Paths</h2>
+      <div class="chapter-companies"><span class="tag wix">Wix</span></div>
+    </div>
 
     <div class="problem-box">
       <div class="problem-box-label">Problem Statement</div>
-      <p>There is a robot on an <code>m × n</code> grid, initially at the top-left corner. The robot tries to move to the bottom-right corner. It can only move either <strong>down</strong> or <strong>right</strong> at any point in time. How many possible unique paths are there?</p>
+      <p>A robot starts at the top-left of an <code>m × n</code> grid and must reach the bottom-right, moving only down or right. How many unique paths are there?</p>
     </div>
 
     <div class="example-box">
       <div class="ex-label">Examples</div>
-      Input: m = 3, n = 7  → Output: 28<br>
-      Input: m = 3, n = 2  → Output: 3
+      m=3, n=7 → 28 &nbsp;·&nbsp; m=3, n=2 → 3
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Top-down memoized DFS: <code>f(i,j) = f(i+1,j) + f(i,j+1)</code>. Base case: <code>f(m-1, n-1) = 1</code> (reached the goal); out-of-bounds = 0. Without the memo table, subproblems overlap exponentially — the cache turns it into O(m·n).</p>
     </div>
 
     <div class="solution-label">Solution — unique-paths.cpp</div>
@@ -1064,30 +1013,35 @@ public:
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       CHAPTER 8 — Word Search
-  ═════════════════════════════════════════════════════════════════ -->
-  <section id="ch8" class="chapter">
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 8 — Word Search
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch8" class="chapter" data-companies="wix">
     <div class="chapter-eyebrow">Chapter</div>
     <div class="chapter-num-large">08</div>
-    <h2 class="chapter-title">Word Search</h2>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Word Search</h2>
+      <div class="chapter-companies"><span class="tag wix">Wix</span></div>
+    </div>
 
     <div class="problem-box">
       <div class="problem-box-label">Problem Statement</div>
-      <p>Given an <code>m × n</code> grid of characters <code>board</code> and a string <code>word</code>, return <code>true</code> if <code>word</code> exists in the grid. The word must be constructed from letters of sequentially adjacent cells (horizontally or vertically). The same cell may not be used more than once.</p>
+      <p>Given an <code>m × n</code> character grid and a <code>word</code>, return <code>true</code> if the word can be constructed from sequentially adjacent (horizontally/vertically) cells, each used at most once.</p>
     </div>
 
     <div class="example-box">
       <div class="ex-label">Example</div>
-      Input: board = [["A","B","C","E"],<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;["S","F","C","S"],<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;["A","D","E","E"]], word = "ABCCED"<br>
-      Output: true
+      board=[["A","B","C","E"],["S","F","C","S"],["A","D","E","E"]], word="ABCCED" → true
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>DFS backtracking: set <code>visited[i][j] = true</code> <em>before</em> recursing into all four neighbours, then restore it to <code>false</code> after — this frees the cell for completely different paths. Without the restore step the algorithm would wrongly block valid routes.</p>
     </div>
 
     <div class="notes-box">
       <div class="notes-label">Optimisation Note</div>
-      <p>If the board does not contain enough of some character from <code>word</code>, return false immediately. Sometimes reversing the word first (if the last character is rarer than the first) shrinks the DFS branching factor.</p>
+      <p>If the board lacks enough of some character in <code>word</code>, return false immediately. Reversing the word when its last character is rarer than the first reduces the DFS branching factor.</p>
     </div>
 
     <div class="solution-label">Solution — word-search.cpp</div>
@@ -1126,27 +1080,31 @@ public:
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       CHAPTER 9 — Word Search II
-  ═════════════════════════════════════════════════════════════════ -->
-  <section id="ch9" class="chapter">
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 9 — Word Search II
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch9" class="chapter" data-companies="wix">
     <div class="chapter-eyebrow">Chapter</div>
     <div class="chapter-num-large">09</div>
-    <h2 class="chapter-title">Word Search II</h2>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Word Search II</h2>
+      <div class="chapter-companies"><span class="tag wix">Wix</span></div>
+    </div>
 
     <div class="problem-box">
       <div class="problem-box-label">Problem Statement</div>
-      <p>Given an <code>m × n</code> board of characters and a list of strings <code>words</code>, return all words that exist on the board. Each word must be constructed from letters of sequentially adjacent cells (horizontally or vertically). The same cell may not be used more than once in a single word.</p>
+      <p>Given an <code>m × n</code> board and a list of strings <code>words</code>, return all words that exist on the board. Each word uses adjacent cells without reuse.</p>
     </div>
 
     <div class="example-box">
       <div class="ex-label">Example</div>
-      Input: board = [["o","a","a","n"],<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;["e","t","a","e"],<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;["i","h","k","r"],<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;["i","f","l","v"]],<br>
-      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;words = ["oath","pea","eat","rain"]<br>
-      Output: ["eat","oath"]
+      board=[["o","a","a","n"],["e","t","a","e"],["i","h","k","r"],["i","f","l","v"]]<br>
+      words=["oath","pea","eat","rain"] → ["eat","oath"]
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>The same DFS backtracking as Word Search (mark/unmark visited), but wrapped in an outer loop over every word. Each word gets a fresh <code>visited</code> grid. The optimal approach would use a Trie to search all words in one pass, but even the per-word DFS works correctly here.</p>
     </div>
 
     <div class="solution-label">Solution — word-search-ii.cpp</div>
@@ -1199,27 +1157,31 @@ public:
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       CHAPTER 10 — Parse Lisp Expression
-  ═════════════════════════════════════════════════════════════════ -->
-  <section id="ch10" class="chapter">
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 10 — Parse Lisp Expression
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch10" class="chapter" data-companies="wix">
     <div class="chapter-eyebrow">Chapter</div>
     <div class="chapter-num-large">10</div>
-    <h2 class="chapter-title">Parse Lisp Expression</h2>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Parse Lisp Expression</h2>
+      <div class="chapter-companies"><span class="tag wix">Wix</span></div>
+    </div>
 
     <div class="problem-box">
       <div class="problem-box-label">Problem Statement</div>
-      <p>You are given a string <code>expression</code> representing a Lisp-like expression to evaluate. The expression can be one of three forms: <code>(let ...)</code> for variable binding, <code>(add e1 e2)</code> for addition, or <code>(mult e1 e2)</code> for multiplication. Variables have lexical scoping — a binding is only visible within its enclosing <code>let</code>. Return the integer value of the expression.</p>
+      <p>Evaluate a Lisp-like expression supporting <code>(let var val ... expr)</code> with lexical scoping, <code>(add e1 e2)</code>, and <code>(mult e1 e2)</code>. Return the integer result.</p>
     </div>
 
     <div class="example-box">
       <div class="ex-label">Examples</div>
-      Input: "(let x 2 (mult x (let x 3 y 4 (add x y))))"<br>
-      Output: 14<br><br>
-      Input: "(add 1 2)"<br>
-      Output: 3<br><br>
-      Input: "(let x 2 (add x 1))"<br>
-      Output: 3
+      "(let x 2 (mult x (let x 3 y 4 (add x y))))" → 14<br>
+      "(add 1 2)" → 3 &nbsp;·&nbsp; "(let x 2 (add x 1))" → 3
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Model lexical scoping with a map from variable name → <em>stack</em> of values. When a <code>let</code> binds a variable, push the new value; when the <code>let</code> scope exits, pop it (rollback). This means inner scopes can shadow outer ones without destroying them — and the outermost value is always at the bottom of the stack.</p>
     </div>
 
     <div class="solution-label">Solution — parseLispExp.cpp</div>
@@ -1362,23 +1324,30 @@ private:
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       CHAPTER 11 — Fibonacci Number
-  ═════════════════════════════════════════════════════════════════ -->
-  <section id="ch11" class="chapter">
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 11 — Fibonacci Number
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch11" class="chapter" data-companies="wix">
     <div class="chapter-eyebrow">Chapter</div>
     <div class="chapter-num-large">11</div>
-    <h2 class="chapter-title">Fibonacci Number</h2>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Fibonacci Number</h2>
+      <div class="chapter-companies"><span class="tag wix">Wix</span></div>
+    </div>
 
     <div class="problem-box">
       <div class="problem-box-label">Problem Statement</div>
-      <p>The Fibonacci numbers form the sequence: <code>0, 1, 1, 2, 3, 5, 8, 13, 21, 34, …</code> where <code>F(0) = 0</code>, <code>F(1) = 1</code>, and <code>F(n) = F(n−1) + F(n−2)</code> for <code>n &gt; 1</code>. Given <code>n</code>, return <code>F(n)</code>.</p>
+      <p>Given <code>n</code>, return <code>F(n)</code> where <code>F(0)=0</code>, <code>F(1)=1</code>, and <code>F(n) = F(n-1) + F(n-2)</code>.</p>
     </div>
 
     <div class="example-box">
       <div class="ex-label">Examples</div>
-      F(0) = 0,  F(1) = 1,  F(2) = 1<br>
-      F(5) = 5,  F(10) = 55
+      F(0)=0 · F(1)=1 · F(5)=5 · F(10)=55
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Only the last two values matter — no array, no recursion. Keep <code>prev2</code> and <code>prev1</code>, compute <code>curr = prev1 + prev2</code>, then slide: <code>prev2 = prev1; prev1 = curr</code>. O(n) time, O(1) space.</p>
     </div>
 
     <div class="solution-label">Solution — fibo.cpp</div>
@@ -1401,17 +1370,25 @@ private:
     </div>
   </section>
 
-  <!-- ════════════════════════════════════════════════════════════════
-       CHAPTER 12 — DFS Templates
-  ═════════════════════════════════════════════════════════════════ -->
-  <section id="ch12" class="chapter">
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 12 — DFS Templates
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch12" class="chapter" data-companies="wix">
     <div class="chapter-eyebrow">Chapter</div>
     <div class="chapter-num-large">12</div>
-    <h2 class="chapter-title">DFS Templates</h2>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">DFS Templates</h2>
+      <div class="chapter-companies"><span class="tag wix">Wix</span></div>
+    </div>
 
     <div class="problem-box">
       <div class="problem-box-label">Reference Patterns</div>
-      <p>Three reusable patterns for depth-first search: a simple recursive traversal, an iterative traversal using an explicit stack, and a generic backtracking template that marks and unmarks visited nodes.</p>
+      <p>Three reusable DFS patterns: recursive traversal, iterative traversal with an explicit stack, and a backtracking template with visited-state management.</p>
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>The cardinal backtracking rule: <em>unmark</em> visited <strong>after</strong> the recursive call returns — not before. This is what distinguishes backtracking from plain DFS. Unmarking restores the state so that sibling branches of the search tree can explore the same node via a different path.</p>
     </div>
 
     <div class="solution-label">Templates — dfs.cpp</div>
@@ -1460,42 +1437,513 @@ bool dfs(...) {
     </div>
   </section>
 
-  <!-- ── Footer ─────────────────────────────────────────────────── -->
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 13 — Reverse Linked List
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch13" class="chapter" data-companies="iai">
+    <div class="chapter-eyebrow">Chapter</div>
+    <div class="chapter-num-large">13</div>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Reverse Linked List</h2>
+      <div class="chapter-companies"><span class="tag iai">IAI</span></div>
+    </div>
+
+    <div class="problem-box">
+      <div class="problem-box-label">Problem Statement</div>
+      <p>Given the <code>head</code> of a singly linked list, reverse the list in-place and return the new head.</p>
+    </div>
+
+    <div class="example-box">
+      <div class="ex-label">Examples</div>
+      [1,2,3,4,5] → [5,4,3,2,1]<br>
+      [1,2]       → [2,1]
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Three-pointer slide: always save <code>p3 = p2-&gt;next</code> <em>before</em> overwriting <code>p2-&gt;next = p1</code> — otherwise you lose the rest of the list. Then advance: <code>p1 = p2; p2 = p3; p3 = p3-&gt;next</code>. Single pass, O(n) time, O(1) space.</p>
+    </div>
+
+    <div class="solution-label">Solution — reverse-linked-list.cpp</div>
+    <div class="code-wrap">
+      <div class="code-filename">reverse-linked-list.cpp</div>
+      <pre><code class="language-cpp">/**
+ * Definition for singly-linked list.
+ * struct ListNode {
+ *     int val;
+ *     ListNode *next;
+ *     ListNode() : val(0), next(nullptr) {}
+ *     ListNode(int x) : val(x), next(nullptr) {}
+ *     ListNode(int x, ListNode *next) : val(x), next(next) {}
+ * };
+ */
+class Solution {
+public:
+    ListNode* reverseList(ListNode* head) {
+        if(head==nullptr) return nullptr;
+        if(head-&gt;next == nullptr) return head;
+        ListNode* p1 = head;
+        ListNode* p2 = p1-&gt;next;
+        ListNode* p3 = p2-&gt;next;
+        p1-&gt;next=nullptr;
+        while(p2!=nullptr){
+            p2-&gt;next = p1;
+            p1 = p2;
+            p2 = p3;
+            if (p3!=nullptr) p3 = p3-&gt;next;
+        }
+        return p1;
+
+    }
+};</code></pre>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 14 — Meeting Rooms III
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch14" class="chapter" data-companies="iai">
+    <div class="chapter-eyebrow">Chapter</div>
+    <div class="chapter-num-large">14</div>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Meeting Rooms III</h2>
+      <div class="chapter-companies"><span class="tag iai">IAI</span></div>
+    </div>
+
+    <div class="problem-box">
+      <div class="problem-box-label">Problem Statement</div>
+      <p>Given <code>n</code> rooms (0-indexed) and sorted meetings <code>[start, end]</code>, assign each meeting to the lowest-numbered free room. If no room is free, delay the meeting to the earliest available room (same duration). Return the room that hosted the most meetings.</p>
+    </div>
+
+    <div class="example-box">
+      <div class="ex-label">Examples</div>
+      n=2, meetings=[[0,10],[1,5],[2,7],[3,4]] → 0<br>
+      n=3, meetings=[[1,20],[2,10],[3,5],[4,9],[6,8]] → 1
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Two min-heaps: <code>availableRooms</code> ordered by room number, and <code>busyRooms</code> ordered by end-time (tie-break: smaller room). Before each meeting, drain <code>busyRooms</code> into <code>availableRooms</code> for all rooms whose <code>endTime ≤ start</code>. If <code>availableRooms</code> is still empty, pop the earliest-ending room from <code>busyRooms</code> and push it back with <code>newEnd = freeTime + duration</code>.</p>
+    </div>
+
+    <div class="solution-label">Solution — meeting-rooms-iii.cpp</div>
+    <div class="code-wrap">
+      <div class="code-filename">meeting-rooms-iii.cpp</div>
+      <pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+#include &lt;queue&gt;
+#include &lt;algorithm&gt;
+
+using namespace std;
+
+class Solution {
+public:
+    int mostBooked(int n, vector&lt;vector&lt;int&gt;&gt;&amp; meetings) {
+        sort(meetings.begin(), meetings.end());
+
+        // Free rooms: smallest room number first
+        priority_queue&lt;int, vector&lt;int&gt;, greater&lt;int&gt;&gt; availableRooms;
+        for (int room = 0; room &lt; n; ++room) {
+            availableRooms.push(room);
+        }
+
+        // Busy rooms: {endTime, roomNumber}
+        // earliest end time first, and if tie then smaller room number first
+        priority_queue&lt;
+            pair&lt;long long, int&gt;,
+            vector&lt;pair&lt;long long, int&gt;&gt;,
+            greater&lt;pair&lt;long long, int&gt;&gt;
+        &gt; busyRooms;
+
+        vector&lt;long long&gt; meetingCount(n, 0);
+
+        for (const auto&amp; meeting : meetings) {
+            long long start = meeting[0];
+            long long end = meeting[1];
+            long long duration = end - start;
+            cout&lt;&lt; "start: "&lt;&lt; start&lt;&lt; ", end: "&lt;&lt;end&lt;&lt;endl;
+
+            // Release every room that became free by meeting start time
+            while (!busyRooms.empty() &amp;&amp; busyRooms.top().first &lt;= start) {
+                int freedRoom = busyRooms.top().second;
+                cout&lt;&lt; "freedRoom: " &lt;&lt; freedRoom &lt;&lt;endl;
+                busyRooms.pop();
+                availableRooms.push(freedRoom);
+            }
+
+            if (!availableRooms.empty()) {
+                // Use the smallest available room
+                int room = availableRooms.top();
+                cout&lt;&lt; "available room: " &lt;&lt; room &lt;&lt; endl;
+                availableRooms.pop();
+
+                busyRooms.push({end, room});
+                meetingCount[room]++;
+            } else {
+                cout&lt;&lt; "no room is free. ";
+                // No room is free: delay meeting to earliest available room
+                auto [freeTime, room] = busyRooms.top();
+                busyRooms.pop();
+
+                long long newEnd = freeTime + duration;
+                busyRooms.push({newEnd, room});
+                meetingCount[room]++;
+                cout&lt;&lt; " New end: " &lt;&lt; newEnd &lt;&lt;endl;
+
+            }
+        }
+
+        int answer = 0;
+        for (int room = 1; room &lt; n; ++room) {
+            if (meetingCount[room] &gt; meetingCount[answer]) {
+                answer = room;
+            }
+        }
+
+        return answer;
+    }
+};
+
+int main() {
+    Solution sol;
+
+    // Example 1
+    int n1 = 2;
+    vector&lt;vector&lt;int&gt;&gt; meetings1 = {
+        {0, 10},
+        {1, 5},
+        {2, 7},
+        {3, 4}
+    };
+
+    int result1 = sol.mostBooked(n1, meetings1);
+    cout &lt;&lt; "Example 1 result: " &lt;&lt; result1 &lt;&lt; endl;   // Expected: 0
+
+    // Example 2
+    int n2 = 3;
+    vector&lt;vector&lt;int&gt;&gt; meetings2 = {
+        {1, 20},
+        {2, 10},
+        {3, 5},
+        {4, 9},
+        {6, 8}
+    };
+
+    int result2 = sol.mostBooked(n2, meetings2);
+    cout &lt;&lt; "Example 2 result: " &lt;&lt; result2 &lt;&lt; endl;   // Expected: 1
+
+    return 0;
+}</code></pre>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 15 — Valid Parenthesis String
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch15" class="chapter" data-companies="iai">
+    <div class="chapter-eyebrow">Chapter</div>
+    <div class="chapter-num-large">15</div>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Valid Parenthesis String</h2>
+      <div class="chapter-companies"><span class="tag iai">IAI</span></div>
+    </div>
+
+    <div class="problem-box">
+      <div class="problem-box-label">Problem Statement</div>
+      <p>Given a string <code>s</code> containing only <code>'('</code>, <code>')'</code>, and <code>'*'</code>, return <code>true</code> if it is valid. A <code>'*'</code> can be treated as <code>'('</code>, <code>')'</code>, or an empty string.</p>
+    </div>
+
+    <div class="example-box">
+      <div class="ex-label">Examples</div>
+      s = "(*)" → true<br>
+      s = "(*))" → true<br>
+      s = "(*())" → true
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Use <strong>two stacks of indices</strong> — one for <code>'('</code> and one for <code>'*'</code>. On encountering <code>')'</code>, prefer to pop an unmatched <code>'('</code>; fall back to a <code>'*'</code>; otherwise return false. After the scan, match any remaining <code>'('</code> with <code>'*'</code> — but only if <code>star.top() &gt; open.top()</code>, because a <code>'*'</code> can only substitute a <code>'('</code> that appears <em>before</em> it.</p>
+    </div>
+
+    <div class="solution-label">Solution — valid-parenthesis-string.cpp</div>
+    <div class="code-wrap">
+      <div class="code-filename">valid-parenthesis-string.cpp</div>
+      <pre><code class="language-cpp">class Solution {
+public:
+    bool checkValidString(string s) {
+        stack&lt;int&gt; open;
+        stack&lt;int&gt; star;
+
+        for (int i = 0; i &lt; s.size(); i++) {
+            if (s[i] == '(') {
+                open.push(i);
+            } else if (s[i] == '*') {
+                star.push(i);
+            } else { // ')'
+                if (!open.empty()) {
+                    open.pop();
+                } else if (!star.empty()) {
+                    star.pop();
+                } else {
+                    return false;
+                }
+            }
+        }
+
+        while (!open.empty() &amp;&amp; !star.empty()) {
+            if (open.top() &gt; star.top()) return false; // star is before '('
+            open.pop();
+            star.pop();
+        }
+
+        return open.empty();
+    }
+};</code></pre>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 16 — Binary Search
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch16" class="chapter" data-companies="iai">
+    <div class="chapter-eyebrow">Chapter</div>
+    <div class="chapter-num-large">16</div>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Binary Search</h2>
+      <div class="chapter-companies"><span class="tag iai">IAI</span></div>
+    </div>
+
+    <div class="problem-box">
+      <div class="problem-box-label">Problem Statement</div>
+      <p>Given a sorted array <code>nums</code> and a <code>target</code>, return the index of <code>target</code>, or <code>-1</code> if it does not exist. Must run in O(log n).</p>
+    </div>
+
+    <div class="example-box">
+      <div class="ex-label">Example</div>
+      nums=[1,3,5,7,9,11], target=7 → index 3
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Two subtle rules: (1) compute <code>mid = left + (right - left) / 2</code> instead of <code>(left + right) / 2</code> to prevent integer overflow. (2) Always move to <code>mid + 1</code> or <code>mid - 1</code> — never just <code>mid</code> — so the search range shrinks every iteration and the loop is guaranteed to terminate.</p>
+    </div>
+
+    <div class="solution-label">Solution — binary-search.cpp</div>
+    <div class="code-wrap">
+      <div class="code-filename">binary-search.cpp</div>
+      <pre><code class="language-cpp">#include &lt;iostream&gt;
+#include &lt;vector&gt;
+using namespace std;
+
+int binarySearch(const vector&lt;int&gt;&amp; nums, int target) {
+    int left = 0, right = nums.size() - 1;
+
+    while (left &lt;= right) {
+        int mid = left + (right - left) / 2;  // avoid overflow
+
+        if (nums[mid] == target)
+            return mid;
+        else if (nums[mid] &lt; target)
+            left = mid + 1;
+        else
+            right = mid - 1;
+    }
+    return -1;
+}
+
+int main() {
+    vector&lt;int&gt; nums = {1, 3, 5, 7, 9, 11};
+    int target = 7;
+
+    int result = binarySearch(nums, target);
+
+    if (result != -1)
+        cout &lt;&lt; "Found at index: " &lt;&lt; result &lt;&lt; endl;
+    else
+        cout &lt;&lt; "Not found" &lt;&lt; endl;
+
+    return 0;
+}</code></pre>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 17 — Valid Parentheses
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch17" class="chapter" data-companies="iai">
+    <div class="chapter-eyebrow">Chapter</div>
+    <div class="chapter-num-large">17</div>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Valid Parentheses</h2>
+      <div class="chapter-companies"><span class="tag iai">IAI</span></div>
+    </div>
+
+    <div class="problem-box">
+      <div class="problem-box-label">Problem Statement</div>
+      <p>Given a string <code>s</code> containing only <code>'('</code>, <code>')'</code>, <code>'{'</code>, <code>'}'</code>, <code>'['</code>, <code>']'</code>, determine if the input string is valid. Every opening bracket must be closed by the same type in the correct order.</p>
+    </div>
+
+    <div class="example-box">
+      <div class="ex-label">Examples</div>
+      "()" → true &nbsp;·&nbsp; "()[]{}" → true &nbsp;·&nbsp; "([)]" → false &nbsp;·&nbsp; "{[]}" → true
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Stack of opening brackets: push any opener. On a closer, immediately check whether the stack is empty or whether <code>stack.top()</code> is the matching opener — if either condition fails, return false. Pop on success. At the end, a valid string leaves an empty stack.</p>
+    </div>
+
+    <div class="solution-label">Solution — valid-parentheses.cpp</div>
+    <div class="code-wrap">
+      <div class="code-filename">valid-parentheses.cpp</div>
+      <pre><code class="language-cpp">class Solution {
+public:
+    bool isValid(string s) {
+        stack&lt;char&gt;paren;
+        for(int i=0;i&lt;s.length();i++){
+            if(s[i]=='(' || s[i]=='[' || s[i]=='{'){
+                paren.push(s[i]);
+            }
+            else{
+                if(paren.empty()) return false;
+                if(s[i]==')' &amp;&amp; paren.top()!='(') return false;
+                if(s[i]==']' &amp;&amp; paren.top()!='[') return false;
+                if(s[i]=='}' &amp;&amp; paren.top()!='{') return false;
+                paren.pop();
+            }
+        }
+        if(paren.empty()) return true;
+        return false;
+    }
+};</code></pre>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       CH 18 — Generate Parentheses
+  ════════════════════════════════════════════════════════════════ -->
+  <section id="ch18" class="chapter" data-companies="iai">
+    <div class="chapter-eyebrow">Chapter</div>
+    <div class="chapter-num-large">18</div>
+    <div class="chapter-header-row">
+      <h2 class="chapter-title">Generate Parentheses</h2>
+      <div class="chapter-companies"><span class="tag iai">IAI</span></div>
+    </div>
+
+    <div class="problem-box">
+      <div class="problem-box-label">Problem Statement</div>
+      <p>Given <code>n</code> pairs of parentheses, write a function to generate all combinations of well-formed parentheses.</p>
+    </div>
+
+
+    <div class="example-box">
+      <div class="ex-label">Example</div>
+      n=3 → ["((()))","(()())","(())()","()(())","()()()"]
+    </div>
+
+    <div class="catch-box">
+      <div class="catch-box-label">The Catch</div>
+      <p>Backtracking with two counters (<code>open</code>, <code>close</code>): add <code>'('</code> only when <code>open &lt; n</code>, add <code>')'</code> only when <code>close &lt; open</code>. These two constraints alone guarantee every fully-built string is already valid — no post-validation step needed. When <code>cur.length() == 2*n</code>, record the result.</p>
+    </div>
+
+    <div class="solution-label">Solution — generate-parentheses.cpp</div>
+    <div class="code-wrap">
+      <div class="code-filename">generate-parentheses.cpp</div>
+      <pre><code class="language-cpp">class Solution {
+public:
+    vector&lt;string&gt; generateParenthesis(int n) {
+        vector&lt;string&gt; res;
+        func(0, 0, n, "", res);
+        return res;
+    }
+    void func(int open, int close, int n, string cur, vector&lt;string&gt;&amp; result) {
+        if (cur.length() == 2 * n) {
+            result.push_back(cur);
+            return;
+        }
+
+        if (open &lt; n) {
+            func(open + 1, close, n, cur + '(', result);
+        }
+
+        if (close &lt; open) {
+            func(open, close + 1, n, cur + ')', result);
+        }
+    }
+};</code></pre>
+    </div>
+  </section>
+
   <footer id="book-footer">
-    LeetCode Solutions &nbsp;·&nbsp; 12 Problems &nbsp;·&nbsp; C++
+    LeetCode Solutions &nbsp;·&nbsp; 18 Problems &nbsp;·&nbsp; C++
   </footer>
 
 </div><!-- /#main -->
 
-<!-- Back to top -->
 <a id="back-top" href="#cover" title="Back to top">&#8593;</a>
 
 <script>
-  // ── Syntax Highlighting ────────────────────────────────────────
-  document.addEventListener('DOMContentLoaded', () => {
-    hljs.highlightAll();
-  });
+  document.addEventListener('DOMContentLoaded', () => { hljs.highlightAll(); });
 
-  // ── Sidebar active link on scroll ─────────────────────────────
-  const sections = document.querySelectorAll('[id]');
-  const sideLinks = document.querySelectorAll('#toc-nav .toc-entry');
+  // ── Company Filter ─────────────────────────────────────────────
+  const filterBtns       = document.querySelectorAll('.filter-btn');
+  const tocCards         = document.querySelectorAll('.toc-card');
+  const chapters         = document.querySelectorAll('.chapter');
+  const sideLinks        = document.querySelectorAll('#toc-nav .toc-entry[data-companies]');
+  const filterBanner     = document.getElementById('filter-banner');
+  const filterBannerName = document.getElementById('filter-banner-name');
+  const tocNotice        = document.getElementById('toc-filter-notice');
+  const tocNoticeText    = document.getElementById('toc-notice-text');
+
+  function applyFilter(company) {
+    filterBtns.forEach(b => b.classList.toggle('active', b.dataset.company === company));
+    const isAll = company === 'all';
+
+    function matches(el) {
+      const cos = (el.dataset.companies || '').toLowerCase().trim();
+      if (isAll) return true;
+      if (!cos) return false;
+      return cos.split(/[\s,]+/).includes(company);
+    }
+
+    tocCards.forEach(c  => c.classList.toggle('filtered-out', !matches(c)));
+    chapters.forEach(ch => ch.classList.toggle('filtered-out', !matches(ch)));
+    sideLinks.forEach(l => l.classList.toggle('filtered-out', !matches(l)));
+
+    if (isAll) {
+      filterBanner.classList.remove('visible');
+      tocNotice.classList.remove('visible');
+    } else {
+      const label = company.toUpperCase();
+      filterBannerName.textContent = label;
+      filterBanner.classList.add('visible');
+      tocNoticeText.textContent = `Showing only questions tagged with ${label}.`;
+      tocNotice.classList.add('visible');
+    }
+  }
+
+  filterBtns.forEach(btn => btn.addEventListener('click', () => applyFilter(btn.dataset.company)));
+
+  // ── Active sidebar link on scroll ──────────────────────────────
+  const allSections = document.querySelectorAll('[id]');
+  const allSideLinks = document.querySelectorAll('#toc-nav .toc-entry');
 
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => {
       if (e.isIntersecting) {
-        sideLinks.forEach(a => a.classList.remove('active'));
+        allSideLinks.forEach(a => a.classList.remove('active'));
         const link = document.querySelector(`#toc-nav a[href="#${e.target.id}"]`);
         if (link) link.classList.add('active');
       }
     });
-  }, { rootMargin: '-30% 0px -60% 0px' });
+  }, { rootMargin: '-25% 0px -65% 0px' });
 
-  sections.forEach(s => observer.observe(s));
+  allSections.forEach(s => observer.observe(s));
 
-  // ── Back-to-top visibility ─────────────────────────────────────
-  const btn = document.getElementById('back-top');
+  // ── Back to top ────────────────────────────────────────────────
+  const backTop = document.getElementById('back-top');
   window.addEventListener('scroll', () => {
-    btn.classList.toggle('visible', window.scrollY > 400);
+    backTop.classList.toggle('visible', window.scrollY > 400);
   });
 </script>
 
