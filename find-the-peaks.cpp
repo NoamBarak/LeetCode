@@ -1,3 +1,4 @@
+//Wix
 /* You are given a 0-indexed array mountain. Your task is to find all the peaks in the mountain array.
 
 Return an array that consists of indices of peaks in the given array in any order.*/
